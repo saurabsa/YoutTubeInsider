@@ -6,8 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
@@ -63,6 +61,7 @@ namespace YouTubeInsider
         {
             YouTubeInsiderSearchToolControl control = (YouTubeInsiderSearchToolControl)this.Content;
             control.reset();
+            control.SearchResultsListBox.Items.Add(new YouTubeVideoElement(control.InitialContent, "", ""));
         }
 
         public override void ProvideSearchSettings(IVsUIDataSource pSearchSettings)
@@ -146,11 +145,12 @@ namespace YouTubeInsider
                 {
                     case "youtube#video":
                         SearchCallback.ReportProgress(this, progress++, maxResults);
+                        var thumbnail = searchResult.Snippet.Thumbnails;
                         //string video = String.Format("{0} ({1})", searchResult.Snippet.Title, searchResult.Id.VideoId);
                         ThreadHelper.Generic.Invoke(() =>
                         {
                             ((List<String>)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultVideoIDs).Add(searchResult.Id.VideoId);
-                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(searchResult.Snippet.Title);
+                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement(searchResult.Snippet.Title, searchResult.Id.VideoId, thumbnail.Medium.Url.ToString()));
                         });
                         break;
                 }
@@ -182,7 +182,7 @@ namespace YouTubeInsider
                         ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).OpenedVideoPlayers.Add(mediaPlayer);
                         progress = 1;
                         ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).reset();
-                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add("Opening Video ...");
+                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement("Opening Video ...", "", ""));
                     });
                 }
                 else
@@ -192,7 +192,7 @@ namespace YouTubeInsider
                         ThreadHelper.Generic.Invoke(() =>
                         {
                             ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).reset();
-                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add("Search Results ...");
+                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement("Search Results ...", "", ""));
                         });
                         Run().Wait();
                     }
@@ -220,7 +220,7 @@ namespace YouTubeInsider
                     ThreadHelper.Generic.Invoke(() =>
                     {
                         ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).reset();
-                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(noResult);
+                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement(noResult, "", ""));
                     });
                 }
                 this.SearchResults = progress;

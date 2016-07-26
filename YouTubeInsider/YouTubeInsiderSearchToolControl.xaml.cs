@@ -5,7 +5,6 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace YouTubeInsider
@@ -32,8 +31,11 @@ namespace YouTubeInsider
 
             this.SearchResultsListBox = resultsTextList;
             resultsTextList.ScrollIntoView(resultsTextList);
+
             this.SearchResultsListBox.Items.Clear();
-            this.SearchResultsListBox.Items.Add(this.InitialContent);
+
+            this.SearchResultsListBox.Items.Add(new YouTubeVideoElement(this.InitialContent, "", ""));
+
             this.SearchResultVideoIDs = new List<String>();
             this.OpenedVideoPlayers = new List<YouTubeInsiderMediaPlayer>();
         }
@@ -62,11 +64,28 @@ namespace YouTubeInsider
                         player.Dispose();
                     }
                     String[] videoIdsArray = SearchResultVideoIDs.ToArray();
+                    System.Windows.Forms.Application.EnableVisualStyles();
+                    //System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+                    //System.Windows.Forms.Application.Run(new YouTubeInsiderMediaPlayer(videoIdsArray[index - 1]));
                     YouTubeInsiderMediaPlayer mediaPlayer = new YouTubeInsiderMediaPlayer(videoIdsArray[index-1]);
                     mediaPlayer.Show();
                     OpenedVideoPlayers.Add(mediaPlayer);
                 }
             }
+        }
+    }
+
+    public class YouTubeVideoElement
+    {
+        public string VideoName { get; set; }
+        public string VideoId { get; set; }
+        public string ImageUrl { get; set; }
+
+        public YouTubeVideoElement(string VideoName, string VideoId, string ImageUrl)
+        {
+            this.VideoName = VideoName;
+            this.VideoId = VideoId;
+            this.ImageUrl = ImageUrl;
         }
     }
 }

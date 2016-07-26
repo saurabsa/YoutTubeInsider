@@ -11,6 +11,14 @@
     <StackPanel Orientation="Vertical">
         <ListBox Name="resultsTextList" Height="800.0"
         Width="800.0" MouseDoubleClick="resultsTextList_MouseDoubleClick">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="3" Width="50" Height="50" Source="{Binding ImageUrl}"/>
+                        <TextBlock Margin="3" Text="{Binding VideoName}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
         </ListBox>
     </StackPanel>
 </UserControl>

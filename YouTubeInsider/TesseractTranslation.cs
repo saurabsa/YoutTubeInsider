@@ -6,7 +6,7 @@ namespace YouTubeInsider
 {
     class TesseractTranslation
     {
-        public static void translate(string imagePath)
+        public static void translate(string imagePath, string textPath)
         {
             string linesToWrite = "";
             try
@@ -65,7 +65,7 @@ namespace YouTubeInsider
                         }
                     }
                 }
-                System.IO.File.WriteAllText(@"temp.cs", linesToWrite);
+                System.IO.File.WriteAllText(textPath, linesToWrite);
             }
             catch (Exception e)
             {

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using Google.Apis.Auth.OAuth2;
 using MouseKeyboardActivityMonitor;
 
 namespace YouTubeInsider
@@ -27,9 +26,30 @@ namespace YouTubeInsider
         public bool YTState = false;
         public bool YTFocus = false;
 
+        Boolean bHaveMouse;
+        Point ptOriginal = new Point();
+        Point ptLast = new Point();
+        Rectangle rectCropArea;
+
         public YouTubeInsiderMediaPlayer()
         {
             InitializeComponent();
+            this.screenShotPicture.Visible = false;
+            this.decodeBtn.Visible = false;
+            bHaveMouse = false;
+            this.cropBtn.Enabled = false;
+            this.decodeBtn.Enabled = false;
+
+
+            // This OAuth 2.0 access scope allows for full read/write access to the
+            // authenticated user's account and requires requests to use an SSL connection.
+            /*List<String> scopes = new List<String>();
+            scopes.Add("https://www.googleapis.com/auth/youtube.force-ssl");
+
+            // Authorize the request.
+            UserCredential credential = Auth.authorize(scopes, "captions");*/
+
+
         }
 
         public YouTubeInsiderMediaPlayer(string videoId)
@@ -221,6 +241,9 @@ namespace YouTubeInsider
             YTplayer_CallFlash("playVideo()");
             //YTplayer_CallFlash("setOptions('cc','reload','true')");
             playState = true;
+
+            this.cropBtn.Enabled = false;
+            this.decodeBtn.Enabled = false;
         }
 
         private void mediaPause()
@@ -235,6 +258,9 @@ namespace YouTubeInsider
             Console.Write(string.Format("Media: Stop\n"));
             YTplayer_CallFlash("stopVideo()");
             playState = false;
+
+            this.cropBtn.Enabled = false;
+            this.decodeBtn.Enabled = false;
         }
 
         private void mediaPlayPause()
@@ -265,12 +291,16 @@ namespace YouTubeInsider
             return target;
         }
 
-        private void convertButton_Click(object sender, EventArgs e)
+        private void captureButton_Click(object sender, EventArgs e)
         {
             mediaPause();
-            captureTime.Text = YTplayer_CallFlash("getCurrentTime()");
+            // slurp the xml into an XmlDocument
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(YTplayer_CallFlash("getCurrentTime()"));
+            XmlNode current = xml.SelectSingleNode(@"/number");
+            double result = Convert.ToDouble(current.FirstChild.InnerText) / 100.00;
+            captureTime.Text = result.ToString() + " s";
 
-            string screenShotImage = "screen.jpeg";
             Graphics g = YTplayer.CreateGraphics();
             Bitmap bmp = new Bitmap(YTplayer.Size.Width, YTplayer.Size.Height, g);
             Graphics memoryGraphics = Graphics.FromImage(bmp);
@@ -278,15 +308,29 @@ namespace YouTubeInsider
             bool success = PrintWindow(YTplayer.Handle, dc, 0);
             memoryGraphics.ReleaseHdc(dc);
             //bmp.Save("screen.jpeg", ImageFormat.Jpeg);
-            bmp.Save(screenShotImage, bmp.RawFormat);
-            bmp.Dispose();
+            //bmp.Save(screenShotImage, bmp.RawFormat);
+            //bmp.Dispose();
 
-            TesseractTranslation.translate(screenShotImage);
+            enableScreenShotPicture(bmp);
+            //TesseractTranslation.translate(screenShotImage);
+        }
+
+        private void enableScreenShotPicture(Bitmap bmp)
+        {
+            this.screenShotPicture.Image = bmp;
+            this.screenShotPicture.Visible = true;
+            this.screenShotPicture.BringToFront();
+
+            this.cropBtn.Enabled = true;
+            this.decodeBtn.Enabled = true;
         }
 
         private void playButton_Click(object sender, EventArgs e)
         {
             mediaPlay();
+            captureTime.Text = "";
+            this.screenShotPicture.Visible = false;
+            this.screenShotPicture.SendToBack();
         }
 
         private void pauseButton_Click(object sender, EventArgs e)
@@ -297,6 +341,176 @@ namespace YouTubeInsider
         private void stopButton_Click(object sender, EventArgs e)
         {
             mediaStop();
+        }
+
+        private void decodeBtn_Click(object sender, EventArgs e)
+        {
+            Bitmap targetImage = crop();
+            string screenShotImage = @"screen.jpeg";
+
+            targetImage.Save(screenShotImage);
+
+            targetImage.Dispose();
+
+            string textPath = @"temp.cs";
+            TesseractTranslation.translate(screenShotImage, textPath);
+
+            /*var dte = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject("VisualStudio.DTE.14.0");
+            if (dte == null)
+            {
+                Type type = Type.GetTypeFromProgID("VisualStudio.DTE.14.0");
+                dte = (EnvDTE80.DTE2)Activator.CreateInstance(type);
+                dte.MainWindow.Visible = true;
+            }
+            dte.Documents.Open(@"C:\Users\saurabsa\Documents\temp.cs");*/
+        }
+
+        private void cropBtn_Click(object sender, EventArgs e)
+        {
+            crop();
+        }
+
+        private Bitmap crop()
+        {
+            TargetPicBox.Refresh();
+            //Prepare a new Bitmap on which the cropped image will be drawn
+            Bitmap sourceBitmap = new Bitmap(screenShotPicture.Image, screenShotPicture.Width, screenShotPicture.Height);
+            Graphics g = TargetPicBox.CreateGraphics();
+
+            Bitmap newBitmap = new Bitmap(TargetPicBox.Width, TargetPicBox.Height);
+
+            int x = 0, y = 0, width = 0, height = 0;
+            if(rectCropArea.Width >= TargetPicBox.Width)
+            {
+                x = 0;
+                width = TargetPicBox.Width;
+            }
+            else
+            {
+                x = (TargetPicBox.Width - rectCropArea.Width)/2;
+                width = rectCropArea.Width;
+            }
+
+            if (rectCropArea.Height >= TargetPicBox.Height)
+            {
+                y = 0;
+                height = TargetPicBox.Height;
+            }
+            else
+            {
+                y = (TargetPicBox.Height - rectCropArea.Height) / 2;
+                height = rectCropArea.Height;
+            }
+
+            //Draw the image on the Graphics object with the new dimesions
+            g.DrawImage(sourceBitmap, new Rectangle(x, y, width, height),
+                rectCropArea, GraphicsUnit.Pixel);
+
+            System.Drawing.Imaging.PixelFormat format = sourceBitmap.PixelFormat;
+            Bitmap bmp = sourceBitmap.Clone(rectCropArea, format);
+            //bmp.Save("tst.jpeg", bmp.RawFormat);
+
+            //Good practice to dispose the System.Drawing objects when not in use.
+            sourceBitmap.Dispose();
+
+            return bmp;
+        }
+
+        private void screenShotPicture_MouseDown(object sender, MouseEventArgs e)
+        {
+            // Make a note that we "have the mouse".
+            bHaveMouse = true;
+
+            // Store the "starting point" for this rubber-band rectangle.
+            ptOriginal.X = e.X;
+            ptOriginal.Y = e.Y;
+
+            // Special value lets us know that no previous
+            // rectangle needs to be erased.
+
+            ptLast.X = -1;
+            ptLast.Y = -1;
+
+            rectCropArea = new Rectangle(new Point(e.X, e.Y), new Size());
+        }
+
+        private void screenShotPicture_MouseUp(object sender, MouseEventArgs e)
+        {
+            // Set internal flag to know we no longer "have the mouse".
+            bHaveMouse = false;
+
+            // If we have drawn previously, draw again in that spot
+            // to remove the lines.
+            if (ptLast.X != -1)
+            {
+                Point ptCurrent = new Point(e.X, e.Y);
+            }
+
+            // Set flags to know that there is no "previous" line to reverse.
+            ptLast.X = -1;
+            ptLast.Y = -1;
+            ptOriginal.X = -1;
+            ptOriginal.Y = -1;
+
+        }
+
+        private void screenShotPicture_MouseMove(object sender, MouseEventArgs e)
+        {
+            Point ptCurrent = new Point(e.X, e.Y);
+
+            // If we "have the mouse", then we draw our lines.
+            if (bHaveMouse)
+            {
+                // If we have drawn previously, draw again in
+                // that spot to remove the lines.
+
+                // Update last point.
+                ptLast = ptCurrent;
+
+                // Draw new lines.
+
+                // e.X - rectCropArea.X;
+                // normal
+                if (e.X > ptOriginal.X && e.Y > ptOriginal.Y)
+                {
+                    rectCropArea.Width = e.X - ptOriginal.X;
+
+                    // e.Y - rectCropArea.Height;
+                    rectCropArea.Height = e.Y - ptOriginal.Y;
+                }
+                else if (e.X < ptOriginal.X && e.Y > ptOriginal.Y)
+                {
+                    rectCropArea.Width = ptOriginal.X - e.X;
+                    rectCropArea.Height = e.Y - ptOriginal.Y;
+                    rectCropArea.X = e.X;
+                    rectCropArea.Y = ptOriginal.Y;
+                }
+                else if (e.X > ptOriginal.X && e.Y < ptOriginal.Y)
+                {
+                    rectCropArea.Width = e.X - ptOriginal.X;
+                    rectCropArea.Height = ptOriginal.Y - e.Y;
+
+                    rectCropArea.X = ptOriginal.X;
+                    rectCropArea.Y = e.Y;
+                }
+                else
+                {
+                    rectCropArea.Width = ptOriginal.X - e.X;
+
+                    // e.Y - rectCropArea.Height;
+                    rectCropArea.Height = ptOriginal.Y - e.Y;
+                    rectCropArea.X = e.X;
+                    rectCropArea.Y = e.Y;
+                }
+                screenShotPicture.Refresh();
+            }
+        }
+
+        private void screenShotPicture_Paint(object sender, PaintEventArgs e)
+        {
+            Pen drawLine = new Pen(Color.Black);
+            drawLine.DashStyle = DashStyle.Dash;
+            e.Graphics.DrawRectangle(drawLine, rectCropArea);
         }
     }
 
