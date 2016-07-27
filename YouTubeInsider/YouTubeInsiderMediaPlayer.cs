@@ -3,23 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
-using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
-using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
-using MouseKeyboardActivityMonitor;
 
 namespace YouTubeInsider
 {
@@ -288,8 +280,8 @@ namespace YouTubeInsider
         private void mediaPlay()
         {
             Console.Write(string.Format("Media: Play\n"));
-            YTplayer_CallFlash("playVideo()");
             //YTplayer_CallFlash("setOptions('cc','reload','true')");
+            YTplayer_CallFlash("playVideo()");
             playState = true;
 
             this.cropBtn.Enabled = false;

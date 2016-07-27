@@ -42,6 +42,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.meanConfidence = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.YTplayer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.screenShotPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TargetPicBox)).BeginInit();
@@ -179,11 +180,22 @@
             this.meanConfidence.Size = new System.Drawing.Size(0, 17);
             this.meanConfidence.TabIndex = 12;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(549, 314);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(143, 17);
+            this.label3.TabIndex = 13;
+            this.label3.Text = "Mean Confidence: ";
+            // 
             // YouTubeInsiderMediaPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1240, 644);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.meanConfidence);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -224,5 +236,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label meanConfidence;
+        private System.Windows.Forms.Label label3;
     }
 }

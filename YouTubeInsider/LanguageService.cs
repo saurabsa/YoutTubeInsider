@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace YouTubeInsider
 {
@@ -12,7 +9,7 @@ namespace YouTubeInsider
         "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements",
         "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public",
         "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient",
-        "try", "void", "volatile", "while", "false", "null", "true", "java" };
+        "try", "void", "volatile", "while", "false", "null", "true", "System", "out", "println", "print", "java" };
 
         private static string[] CSharpKeywords = { "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
         "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit",
@@ -21,7 +18,7 @@ namespace YouTubeInsider
         "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc",
         "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked",
         "unsafe", "ushort", "using", "var", "virtual", "void", "volatile", "while", "add", "alias", "get", "global", "partial",
-        "remove", "set", "value", "where", "yield", "c#", "cs", "csharp"};
+        "remove", "set", "value", "where", "yield", "Console", "Write", "WriteLine", "Read", "ReadLine", "c#", "cs", "csharp"};
 
         private static string[] CPlusPlusKeywords = { "alignas", "alignof", "and", "and_eq", "asm", "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto",
         "bitand", "bitor", "bool", "break", "case", "catch", "char", "char16_t", "char32_t", "class", "compl", "concept", "const",
@@ -43,44 +40,10 @@ namespace YouTubeInsider
 
         public static string analyzeType(List<string> textWords, string videoName)
         {
-            uint javaPoints = 0, cppPoints = 0, cSharpPoints = 0, cPoints = 0, pythonPoints = 0;
-            foreach (string word in textWords)
+            // videoName analysis
+            if(!(string.IsNullOrEmpty(videoName) || string.IsNullOrWhiteSpace(videoName)))
             {
-                if(JavaKeywords.Contains(word.ToLower()))
-                {
-                    javaPoints++;
-                }
-                if (CSharpKeywords.Contains(word.ToLower()))
-                {
-                    cSharpPoints++;
-                }
-                if (CPlusPlusKeywords.Contains(word.ToLower()))
-                {
-                    cppPoints++;
-                }
-                if (CKeywords.Contains(word.ToLower()))
-                {
-                    cPoints++;
-                }
-                if (PythonKeywords.Contains(word.ToLower()))
-                {
-                    pythonPoints++;
-                }
-            }
-
-            List<string> analyzedLanguage = findMaxPoints(javaPoints, cppPoints, cSharpPoints, cPoints, pythonPoints);
-            if(analyzedLanguage.Count == 1)
-            {
-                return analyzedLanguage.First();
-            }
-            else if (analyzedLanguage.Count == 0)
-            {
-                return "txt";
-            }
-            else if (analyzedLanguage.Count > 1)
-            {
-                if(videoName.ToLower().Contains("visual")
-                    || videoName.ToLower().Contains("studio")
+                if (videoName.ToLower().Contains("visual studio")
                     || videoName.ToLower().Contains("sharp")
                     || videoName.ToLower().Contains("c#"))
                 {
@@ -107,13 +70,59 @@ namespace YouTubeInsider
                 {
                     return "py";
                 }
-                else
+            }
+
+            // text analysis
+            uint javaPoints = 0, cppPoints = 0, cSharpPoints = 0, cPoints = 0, pythonPoints = 0;
+            foreach (string word in textWords)
+            {
+                if (word == null) continue;
+                foreach (string java in JavaKeywords)
                 {
-                    return "txt";
+                    if(word.ToLower().Contains(java))
+                    {
+                        javaPoints++;
+                    }
+                }
+                foreach (string cSharp in CSharpKeywords)
+                {
+                    if (word.ToLower().Contains(cSharp))
+                    {
+                        cSharpPoints++;
+                    }
+                }
+                foreach (string c in CKeywords)
+                {
+                    if (word.ToLower().Contains(c))
+                    {
+                        cPoints++;
+                    }
+                }
+                foreach (string python in PythonKeywords)
+                {
+                    if (word.ToLower().Contains(python))
+                    {
+                        pythonPoints++;
+                    }
+                }
+                foreach (string cpp in CPlusPlusKeywords)
+                {
+                    if (word.ToLower().Contains(cpp))
+                    {
+                        cppPoints++;
+                    }
                 }
             }
 
-            return "txt";
+            List<string> analyzedLanguage = findMaxPoints(javaPoints, cppPoints, cSharpPoints, cPoints, pythonPoints);
+            if(analyzedLanguage.Count == 1)
+            {
+                return analyzedLanguage.First();
+            }
+            else
+            {
+                return "txt";
+            }
         }
 
         private static List<string> findMaxPoints(uint javaPoints, uint cppPoints, uint cSharpPoints, uint cPoints, uint pythonPoints)
