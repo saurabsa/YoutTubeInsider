@@ -52,7 +52,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="LanguageKeywords.cs" />
+    <Compile Include="LanguageService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TesseractTranslation.cs" />
     <Compile Include="YouTubeInsiderMediaPlayer.cs">
