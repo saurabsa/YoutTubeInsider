@@ -14,7 +14,7 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <Image Margin="3" Width="50" Height="50" Source="{Binding ImageUrl}"/>
+                        <Image Margin="3" Width="40" Height="40" Source="{Binding ImageUrl}"/>
                         <TextBlock Margin="3" Text="{Binding VideoName}"/>
                     </StackPanel>
                 </DataTemplate>

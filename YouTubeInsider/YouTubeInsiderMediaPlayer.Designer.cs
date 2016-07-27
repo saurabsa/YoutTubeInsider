@@ -40,6 +40,8 @@
             this.cropBtn = new System.Windows.Forms.Button();
             this.TargetPicBox = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.meanConfidence = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.YTplayer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.screenShotPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TargetPicBox)).BeginInit();
@@ -101,7 +103,7 @@
             // captureTime
             // 
             this.captureTime.AutoSize = true;
-            this.captureTime.Location = new System.Drawing.Point(954, 71);
+            this.captureTime.Location = new System.Drawing.Point(982, 71);
             this.captureTime.Name = "captureTime";
             this.captureTime.Size = new System.Drawing.Size(0, 17);
             this.captureTime.TabIndex = 6;
@@ -159,11 +161,31 @@
             this.label1.TabIndex = 10;
             this.label1.Text = "Capture Time: ";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(833, 416);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(143, 17);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Mean Confidence: ";
+            // 
+            // meanConfidence
+            // 
+            this.meanConfidence.AutoSize = true;
+            this.meanConfidence.Location = new System.Drawing.Point(982, 416);
+            this.meanConfidence.Name = "meanConfidence";
+            this.meanConfidence.Size = new System.Drawing.Size(0, 17);
+            this.meanConfidence.TabIndex = 12;
+            // 
             // YouTubeInsiderMediaPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1240, 644);
+            this.Controls.Add(this.meanConfidence);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.TargetPicBox);
             this.Controls.Add(this.cropBtn);
@@ -175,8 +197,10 @@
             this.Controls.Add(this.pauseButton);
             this.Controls.Add(this.playButton);
             this.Controls.Add(this.captureBtn);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "YouTubeInsiderMediaPlayer";
             this.Text = "YouTubeInsiderMediaPlayer";
+            this.Load += new System.EventHandler(this.YouTubeInsiderMediaPlayer_Load);
             ((System.ComponentModel.ISupportInitialize)(this.YTplayer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.screenShotPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.TargetPicBox)).EndInit();
@@ -198,5 +222,7 @@
         private System.Windows.Forms.Button cropBtn;
         private System.Windows.Forms.PictureBox TargetPicBox;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label meanConfidence;
     }
 }

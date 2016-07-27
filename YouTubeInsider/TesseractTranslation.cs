@@ -1,33 +1,42 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Windows.Forms;
 using Tesseract;
 
 namespace YouTubeInsider
 {
     class TesseractTranslation
     {
-        public static void translate(string imagePath, string textPath)
+        private static uint textFileCount = 1;
+
+        internal static string translate(string imagePath, string textPath, Label meanConfidence, string videoName)
         {
             string linesToWrite = "";
+            string meanConfidenceValue = "";
+            List<string> textWords = new List<string>();
             try
             {
-                using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
+                using (var engine = new TesseractEngine(Constants.TessDataFolderPath, "eng", EngineMode.Default))
                 {
                     using (var img = Pix.LoadFromFile(imagePath))
                     {
                         using (var page = engine.Process(img))
                         {
                             var text = page.GetText();
-                            linesToWrite += "Mean confidence: " + page.GetMeanConfidence() + "\n";
+                            //linesToWrite += "Mean confidence: " + page.GetMeanConfidence() + "\n";
                             Console.WriteLine("Mean confidence: {0}", page.GetMeanConfidence());
-                            linesToWrite += "Text (GetText): \r\n\n" + text;
+                            meanConfidenceValue = page.GetMeanConfidence().ToString();
+                            meanConfidence.Text = meanConfidenceValue;
+                            //linesToWrite += "Text (GetText): \r\n\n" + text;
+                            linesToWrite = text;
                             Console.WriteLine("Text (GetText): \r\n{0}", text);
-                            linesToWrite += "Text (iterator):\n";
+                            //linesToWrite += "Text (iterator):\n";
                             Console.WriteLine("Text (iterator):");
                             using (var iter = page.GetIterator())
                             {
                                 iter.Begin();
-
                                 do
                                 {
                                     do
@@ -38,24 +47,26 @@ namespace YouTubeInsider
                                             {
                                                 if (iter.IsAtBeginningOf(PageIteratorLevel.Block))
                                                 {
-                                                    linesToWrite += "<BLOCK>\n";
+                                                    //linesToWrite += "<BLOCK>\n";
                                                     Console.WriteLine("<BLOCK>");
                                                 }
 
-                                                linesToWrite += iter.GetText(PageIteratorLevel.Word) + ".";
-                                                Console.Write(iter.GetText(PageIteratorLevel.Word));
+                                                string word = iter.GetText(PageIteratorLevel.Word);
+                                                //linesToWrite += iter.GetText(PageIteratorLevel.Word) + ".";
+                                                textWords.Add(word);
+                                                Console.Write(word);
                                                 Console.Write(" ");
 
                                                 if (iter.IsAtFinalOf(PageIteratorLevel.TextLine, PageIteratorLevel.Word))
                                                 {
-                                                    linesToWrite += "\n";
+                                                    //linesToWrite += "\n";
                                                     Console.WriteLine();
                                                 }
                                             } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
 
                                             if (iter.IsAtFinalOf(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
                                             {
-                                                linesToWrite += "\n";
+                                                //linesToWrite += "\n";
                                                 Console.WriteLine();
                                             }
                                         } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
@@ -65,7 +76,11 @@ namespace YouTubeInsider
                         }
                     }
                 }
+
+                textPath = textPath + textFileCount++.ToString() + "." + LanguageService.analyzeType(textWords, videoName);
+
                 System.IO.File.WriteAllText(textPath, linesToWrite);
+                meanConfidence.Text = meanConfidenceValue + " ... Completed";
             }
             catch (Exception e)
             {
@@ -73,9 +88,9 @@ namespace YouTubeInsider
                 Console.WriteLine("Unexpected Error: " + e.Message);
                 Console.WriteLine("Details: ");
                 Console.WriteLine(e.ToString());
+                MessageBox.Show(e.ToString());
             }
-            //Console.Write("Press any key to continue . . . ");
-            //Console.ReadKey(true);
+            return textPath;
         }
     }
 }

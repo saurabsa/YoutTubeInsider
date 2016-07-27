@@ -61,7 +61,7 @@ namespace YouTubeInsider
         {
             YouTubeInsiderSearchToolControl control = (YouTubeInsiderSearchToolControl)this.Content;
             control.reset();
-            control.SearchResultsListBox.Items.Add(new YouTubeVideoElement(control.InitialContent, "", ""));
+            control.SearchResultsListBox.Items.Add(new YouTubeVideoElement(control.InitialContent, "", Constants.YouTubeInsiderIconUrl));
         }
 
         public override void ProvideSearchSettings(IVsUIDataSource pSearchSettings)
@@ -145,12 +145,11 @@ namespace YouTubeInsider
                 {
                     case "youtube#video":
                         SearchCallback.ReportProgress(this, progress++, maxResults);
-                        var thumbnail = searchResult.Snippet.Thumbnails;
+                        var thumbnail = searchResult.Snippet.Thumbnails.Default__;
                         //string video = String.Format("{0} ({1})", searchResult.Snippet.Title, searchResult.Id.VideoId);
                         ThreadHelper.Generic.Invoke(() =>
                         {
-                            ((List<String>)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultVideoIDs).Add(searchResult.Id.VideoId);
-                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement(searchResult.Snippet.Title, searchResult.Id.VideoId, thumbnail.Medium.Url.ToString()));
+                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement(searchResult.Snippet.Title, searchResult.Id.VideoId, thumbnail.Url.ToString()));
                         });
                         break;
                 }
@@ -177,12 +176,12 @@ namespace YouTubeInsider
                         {
                             player.Dispose();
                         }
-                        YouTubeInsiderMediaPlayer mediaPlayer = new YouTubeInsiderMediaPlayer(searchString);
+                        YouTubeInsiderMediaPlayer mediaPlayer = new YouTubeInsiderMediaPlayer(searchString, "");
                         mediaPlayer.Show();
                         ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).OpenedVideoPlayers.Add(mediaPlayer);
                         progress = 1;
                         ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).reset();
-                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement("Opening Video ...", "", ""));
+                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement("Opening Video ...", "", Constants.YouTubeInsiderIconUrl));
                     });
                 }
                 else
@@ -192,7 +191,7 @@ namespace YouTubeInsider
                         ThreadHelper.Generic.Invoke(() =>
                         {
                             ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).reset();
-                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement("Search Results ...", "", ""));
+                            ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement("Search Results ...", "", Constants.YouTubeInsiderIconUrl));
                         });
                         Run().Wait();
                     }
@@ -220,7 +219,7 @@ namespace YouTubeInsider
                     ThreadHelper.Generic.Invoke(() =>
                     {
                         ((YouTubeInsiderSearchToolControl)m_toolWindow.Content).reset();
-                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement(noResult, "", ""));
+                        ((ListBox)((YouTubeInsiderSearchToolControl)m_toolWindow.Content).SearchResultsListBox).Items.Add(new YouTubeVideoElement(noResult, "", Constants.YouTubeInsiderIconUrl));
                     });
                 }
                 this.SearchResults = progress;

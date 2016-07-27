@@ -16,8 +16,6 @@ namespace YouTubeInsider
     {
         public ListBox SearchResultsListBox { get; set; }
         public string InitialContent { get; set; }
-        public List<String> SearchResultVideoIDs { get; set; }
-
         public List<YouTubeInsiderMediaPlayer> OpenedVideoPlayers { get; set; }
 
         /// <summary>
@@ -34,9 +32,8 @@ namespace YouTubeInsider
 
             this.SearchResultsListBox.Items.Clear();
 
-            this.SearchResultsListBox.Items.Add(new YouTubeVideoElement(this.InitialContent, "", ""));
+            this.SearchResultsListBox.Items.Add(new YouTubeVideoElement(this.InitialContent, "", Constants.YouTubeInsiderIconUrl));
 
-            this.SearchResultVideoIDs = new List<String>();
             this.OpenedVideoPlayers = new List<YouTubeInsiderMediaPlayer>();
         }
 
@@ -48,7 +45,6 @@ namespace YouTubeInsider
         public void reset()
         {
             this.SearchResultsListBox.Items.Clear();
-            this.SearchResultVideoIDs.Clear();
         }
 
         private void resultsTextList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -56,18 +52,17 @@ namespace YouTubeInsider
             int index = resultsTextList.SelectedIndex;
             if (index > 0)
             {
-                object item = resultsTextList.SelectedItem;
-                if (item != null && SearchResultVideoIDs.Count > 0)
+                YouTubeVideoElement item = (YouTubeVideoElement) resultsTextList.SelectedItem;
+                if (item != null)
                 {
                     foreach (YouTubeInsiderMediaPlayer player in OpenedVideoPlayers)
                     {
                         player.Dispose();
                     }
-                    String[] videoIdsArray = SearchResultVideoIDs.ToArray();
                     System.Windows.Forms.Application.EnableVisualStyles();
                     //System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
                     //System.Windows.Forms.Application.Run(new YouTubeInsiderMediaPlayer(videoIdsArray[index - 1]));
-                    YouTubeInsiderMediaPlayer mediaPlayer = new YouTubeInsiderMediaPlayer(videoIdsArray[index-1]);
+                    YouTubeInsiderMediaPlayer mediaPlayer = new YouTubeInsiderMediaPlayer(item.VideoId, item.VideoName);
                     mediaPlayer.Show();
                     OpenedVideoPlayers.Add(mediaPlayer);
                 }

@@ -5,16 +5,12 @@
 //------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Net;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.Win32;
 
 namespace YouTubeInsider
 {
@@ -59,6 +55,20 @@ namespace YouTubeInsider
             // initialization is the Initialize method.
         }
 
+        private async void InitializeTesseractData()
+        {
+            if (!Directory.Exists(Constants.TessDataFolderPath))
+            {
+                WebClient Client = new WebClient();
+                string tempTessDataZipFilePath = Path.Combine(Constants.VisualStudioFolderPath, "tessData.zip");
+                Client.DownloadFile(Constants.TessDataUrl, tempTessDataZipFilePath);
+                ZipFile.ExtractToDirectory(tempTessDataZipFilePath, Constants.VisualStudioFolderPath);
+                File.Delete(tempTessDataZipFilePath);
+                string temp = Path.Combine(Constants.VisualStudioFolderPath, "tessdata-3.04.00");
+                Directory.Move(temp, Constants.TessDataFolderPath);
+            }
+        }
+
         #region Package Members
 
         /// <summary>
@@ -68,6 +78,7 @@ namespace YouTubeInsider
         protected override void Initialize()
         {
             YouTubeInsiderSearchToolCommand.Initialize(this);
+            InitializeTesseractData();
             base.Initialize();
         }
 

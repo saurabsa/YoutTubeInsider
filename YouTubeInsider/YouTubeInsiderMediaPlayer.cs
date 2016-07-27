@@ -3,13 +3,22 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using Google.Apis.YouTube.v3;
+using Google.Apis.YouTube.v3.Data;
 using MouseKeyboardActivityMonitor;
 
 namespace YouTubeInsider
@@ -21,7 +30,7 @@ namespace YouTubeInsider
         private static extern bool PrintWindow(IntPtr hwnd, IntPtr hDC, uint nFlags);
 
         private string videoId;
-        private readonly KeyboardHookListener m_KeyboardHookManager;
+        private string videoName;
         public bool playState = false;
         public bool YTState = false;
         public bool YTFocus = false;
@@ -34,28 +43,69 @@ namespace YouTubeInsider
         public YouTubeInsiderMediaPlayer()
         {
             InitializeComponent();
-            this.screenShotPicture.Visible = false;
-            this.decodeBtn.Visible = false;
-            bHaveMouse = false;
-            this.cropBtn.Enabled = false;
-            this.decodeBtn.Enabled = false;
-
-
-            // This OAuth 2.0 access scope allows for full read/write access to the
-            // authenticated user's account and requires requests to use an SSL connection.
-            /*List<String> scopes = new List<String>();
-            scopes.Add("https://www.googleapis.com/auth/youtube.force-ssl");
-
-            // Authorize the request.
-            UserCredential credential = Auth.authorize(scopes, "captions");*/
-
-
+            InitializePlayer();
         }
 
-        public YouTubeInsiderMediaPlayer(string videoId)
+        private void InitializePlayer()
+        {
+            this.screenShotPicture.Visible = false;
+            this.bHaveMouse = false;
+            this.cropBtn.Enabled = false;
+            this.decodeBtn.Enabled = false;
+        }
+
+        public async System.Threading.Tasks.Task Run()
+        {
+            // This OAuth 2.0 access scope allows for full read/write access to the
+            // authenticated user's account and requires requests to use an SSL connection.
+            /*UserCredential credential;
+            using (var stream = new FileStream("client_secrets.json", FileMode.Open, FileAccess.Read))
+            {
+                credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    // This OAuth 2.0 access scope allows an application to upload files to the
+                    // authenticated user's YouTube channel, but doesn't allow other types of access.
+                    new[] { YouTubeService.Scope.YoutubeForceSsl },
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(this.GetType().ToString())
+                );
+            }*/
+
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = "AIzaSyAJze2R6uaM9kA_U8YnwVzJWo_hX3O2O3s",
+                ApplicationName = this.GetType().ToString()
+            });
+            /*var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = Assembly.GetExecutingAssembly().GetName().Name
+            });*/
+            
+            // Call the YouTube Data API's captions.list method to
+            // retrieve video caption tracks.
+            var captionListRequest = youtubeService.Captions.List("snippet", videoId);
+            CaptionListResponse captionListResponse = await captionListRequest.ExecuteAsync();
+
+            // Print information from the API response.
+            foreach (var caption in captionListResponse.Items)
+            {
+                Console.WriteLine(caption.Id);
+                Console.WriteLine(caption.Kind);
+                Console.WriteLine(caption.Snippet.Name);
+                Console.WriteLine(caption.Snippet.Language);
+            }
+        }
+
+        public YouTubeInsiderMediaPlayer(string videoId, string videoName)
         {
             this.videoId = videoId;
+            this.videoName = videoName;
             InitializeComponent();
+            InitializePlayer();
+
+            //Run().Wait();
             this.YTplayer.Movie = "https://www.youtube.com/v/" + videoId + "?autoplay=1&enablejsapi=1&fs=1&loop=1&modestbranding=1&rel=0&showinfo=0&autohide=1&color=white&iv_load_policy=3&version=3&playerapiid=ytplayer";
             //?version =3&enablejsapi=1
             //http://www.youtube.com/v/BboXNHDjhAM?autoplay=1&enablejsapi=1&fs=1&loop=1&modestbranding=1&rel=0&showinfo=0&autohide=1&color=white&iv_load_policy=3&theme=light&version=3
@@ -294,6 +344,8 @@ namespace YouTubeInsider
         private void captureButton_Click(object sender, EventArgs e)
         {
             mediaPause();
+            captureTime.Text = "";
+            meanConfidence.Text = "";
             // slurp the xml into an XmlDocument
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(YTplayer_CallFlash("getCurrentTime()"));
@@ -302,15 +354,13 @@ namespace YouTubeInsider
             captureTime.Text = result.ToString() + " s";
 
             Graphics g = YTplayer.CreateGraphics();
+            resetRectangle();
+            //g.Clear(Color.White);
             Bitmap bmp = new Bitmap(YTplayer.Size.Width, YTplayer.Size.Height, g);
             Graphics memoryGraphics = Graphics.FromImage(bmp);
             IntPtr dc = memoryGraphics.GetHdc();
             bool success = PrintWindow(YTplayer.Handle, dc, 0);
             memoryGraphics.ReleaseHdc(dc);
-            //bmp.Save("screen.jpeg", ImageFormat.Jpeg);
-            //bmp.Save(screenShotImage, bmp.RawFormat);
-            //bmp.Dispose();
-
             enableScreenShotPicture(bmp);
             //TesseractTranslation.translate(screenShotImage);
         }
@@ -329,6 +379,7 @@ namespace YouTubeInsider
         {
             mediaPlay();
             captureTime.Text = "";
+            meanConfidence.Text = "";
             this.screenShotPicture.Visible = false;
             this.screenShotPicture.SendToBack();
         }
@@ -343,30 +394,41 @@ namespace YouTubeInsider
             mediaStop();
         }
 
-        private void decodeBtn_Click(object sender, EventArgs e)
+        private async void decodeBtn_Click(object sender, EventArgs e)
         {
+            if (rectCropArea.Width == 0 || rectCropArea.Height == 0) return;
             Bitmap targetImage = crop();
-            string screenShotImage = @"screen.jpeg";
+            meanConfidence.Text = "Decoding ...";
+            string screenShotImage = Constants.ScreenShotImagePath;
 
             targetImage.Save(screenShotImage);
 
             targetImage.Dispose();
 
-            string textPath = @"temp.cs";
-            TesseractTranslation.translate(screenShotImage, textPath);
+            string textPath = Constants.TextImagePath;
+            textPath = TesseractTranslation.translate(screenShotImage, textPath, meanConfidence, videoName);
+            //textPath = await OCRPage.translate(screenShotImage, textPath, meanConfidence, videoName);
 
-            /*var dte = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject("VisualStudio.DTE.14.0");
-            if (dte == null)
+            try
             {
-                Type type = Type.GetTypeFromProgID("VisualStudio.DTE.14.0");
-                dte = (EnvDTE80.DTE2)Activator.CreateInstance(type);
-                dte.MainWindow.Visible = true;
+                var dte = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject("VisualStudio.DTE.14.0");
+                if (dte == null)
+                {
+                    Type type = Type.GetTypeFromProgID("VisualStudio.DTE.14.0");
+                    dte = (EnvDTE80.DTE2)Activator.CreateInstance(type);
+                    dte.MainWindow.Visible = true;
+                }
+                dte.Documents.Open(textPath);
             }
-            dte.Documents.Open(@"C:\Users\saurabsa\Documents\temp.cs");*/
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void cropBtn_Click(object sender, EventArgs e)
         {
+            if (rectCropArea.Width == 0 || rectCropArea.Height == 0) return;
             crop();
         }
 
@@ -445,13 +507,31 @@ namespace YouTubeInsider
             {
                 Point ptCurrent = new Point(e.X, e.Y);
             }
+            else
+            {
+                Point ptCurrent = new Point(e.X, e.Y);
+
+                if (ptOriginal.X == ptCurrent.X && ptOriginal.Y == ptCurrent.Y)
+                {
+                    resetRectangle();
+                }
+            }
 
             // Set flags to know that there is no "previous" line to reverse.
             ptLast.X = -1;
             ptLast.Y = -1;
             ptOriginal.X = -1;
             ptOriginal.Y = -1;
+        }
 
+        private void resetRectangle()
+        {
+            rectCropArea.Width = 0;
+            rectCropArea.Height = 0;
+
+            rectCropArea.X = ptOriginal.X;
+            rectCropArea.Y = ptOriginal.Y;
+            screenShotPicture.Refresh();
         }
 
         private void screenShotPicture_MouseMove(object sender, MouseEventArgs e)
@@ -508,9 +588,14 @@ namespace YouTubeInsider
 
         private void screenShotPicture_Paint(object sender, PaintEventArgs e)
         {
-            Pen drawLine = new Pen(Color.Black);
+            Pen drawLine = new Pen(Color.Red);
             drawLine.DashStyle = DashStyle.Dash;
             e.Graphics.DrawRectangle(drawLine, rectCropArea);
+        }
+
+        private void YouTubeInsiderMediaPlayer_Load(object sender, EventArgs e)
+        {
+
         }
     }
 
