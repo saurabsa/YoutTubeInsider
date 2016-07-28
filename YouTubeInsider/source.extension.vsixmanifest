@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="YouTubeInsider.Saurabh Sarkar.8d0ff548-eb87-4a42-8d64-ca957d92ab5b" Version="1.0" Language="en-US" Publisher="Saurabh Sarkar" />
     <DisplayName>YouTubeInsider</DisplayName>
-    <Description xml:space="preserve">Tools to search and play You Tube video tutorials and extract the source code out of it.Tools to </Description>
+    <Description xml:space="preserve">Tools to search and play You Tube video tutorials and extract the source code out of it.</Description>
     <Icon>find256.ico</Icon>
     <PreviewImage>find256.png</PreviewImage>
   </Metadata>

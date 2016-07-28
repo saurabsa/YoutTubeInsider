@@ -180,7 +180,6 @@
             this.meanConfidence.Name = "meanConfidence";
             this.meanConfidence.Size = new System.Drawing.Size(114, 17);
             this.meanConfidence.TabIndex = 12;
-            this.meanConfidence.Text = "meanConfidence";
             // 
             // label3
             // 
