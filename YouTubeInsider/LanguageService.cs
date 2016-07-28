@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace YouTubeInsider
 {
@@ -79,35 +81,35 @@ namespace YouTubeInsider
                 if (word == null) continue;
                 foreach (string java in JavaKeywords)
                 {
-                    if(word.ToLower().Contains(java))
+                    if(word.ToLower().Contains(java.ToLower()))
                     {
                         javaPoints++;
                     }
                 }
                 foreach (string cSharp in CSharpKeywords)
                 {
-                    if (word.ToLower().Contains(cSharp))
+                    if (word.ToLower().Contains(cSharp.ToLower()))
                     {
                         cSharpPoints++;
                     }
                 }
                 foreach (string c in CKeywords)
                 {
-                    if (word.ToLower().Contains(c))
+                    if (word.ToLower().Contains(c.ToLower()))
                     {
                         cPoints++;
                     }
                 }
                 foreach (string python in PythonKeywords)
                 {
-                    if (word.ToLower().Contains(python))
+                    if (word.ToLower().Contains(python.ToLower()))
                     {
                         pythonPoints++;
                     }
                 }
                 foreach (string cpp in CPlusPlusKeywords)
                 {
-                    if (word.ToLower().Contains(cpp))
+                    if (word.ToLower().Contains(cpp.ToLower()))
                     {
                         cppPoints++;
                     }
@@ -172,6 +174,66 @@ namespace YouTubeInsider
             }
 
             return analyzedLanguage;
+        }
+
+        internal static string scoreOCR(string tessText, string msOcrText, List<string> textWords, bool autoDetect, string videoName, ref string lang, Label meanConfidence)
+        {
+            if (autoDetect)
+            {
+                lang = analyzeType(textWords, videoName);
+            }
+
+            if(lang.Equals("java"))
+            {
+                return scoreOCRWithLang(tessText, msOcrText, JavaKeywords, meanConfidence);
+            }
+            else if (lang.Equals("cs"))
+            {
+                return scoreOCRWithLang(tessText, msOcrText, CSharpKeywords, meanConfidence);
+            }
+            else if (lang.Equals("c"))
+            {
+                return scoreOCRWithLang(tessText, msOcrText, CKeywords, meanConfidence);
+            }
+            else if (lang.Equals("cpp"))
+            {
+                return scoreOCRWithLang(tessText, msOcrText, CPlusPlusKeywords, meanConfidence);
+            }
+            else if (lang.Equals("py"))
+            {
+                return scoreOCRWithLang(tessText, msOcrText, PythonKeywords, meanConfidence);
+            }
+
+            return tessText;
+        }
+
+        private static string scoreOCRWithLang(string tessText, string msOcrText, string[] Keywords, Label meanConfidence)
+        {
+            uint tessPoints = 0, msOcrPoints = 0;
+            foreach (string word in Keywords)
+            {
+                if (tessText.ToLower().Contains(word.ToLower())) {
+                    tessPoints++;
+                }
+                if (msOcrText.ToLower().Contains(word.ToLower())) {
+                    msOcrPoints++;
+                }
+            }
+            double score = 0.0;
+            if (tessPoints >= msOcrPoints)
+            {
+                score = tessPoints / (double) (tessPoints + msOcrPoints);
+                score = Math.Round(score, 2);
+                meanConfidence.Text = score.ToString() + " (Tesseract)";
+                return tessText;
+            }
+            else
+            {
+                score = msOcrPoints / (double)(tessPoints + msOcrPoints);
+                score = Math.Round(score, 2);
+                meanConfidence.Text = score.ToString() + " (MS OCR)";
+                return msOcrText;
+            }
         }
     }
 }

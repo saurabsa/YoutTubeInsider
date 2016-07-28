@@ -9,13 +9,10 @@ namespace YouTubeInsider
 {
     class TesseractTranslation
     {
-        private static uint textFileCount = 1;
-
-        internal static string translate(string imagePath, string textPath, Label meanConfidence, string videoName)
+        internal static string translate(string imagePath, List<string> textWords, string videoName)
         {
             string linesToWrite = "";
             string meanConfidenceValue = "";
-            List<string> textWords = new List<string>();
             try
             {
                 using (var engine = new TesseractEngine(Constants.TessDataFolderPath, "eng", EngineMode.Default))
@@ -28,7 +25,6 @@ namespace YouTubeInsider
                             //linesToWrite += "Mean confidence: " + page.GetMeanConfidence() + "\n";
                             Console.WriteLine("Mean confidence: {0}", page.GetMeanConfidence());
                             meanConfidenceValue = page.GetMeanConfidence().ToString();
-                            meanConfidence.Text = meanConfidenceValue;
                             //linesToWrite += "Text (GetText): \r\n\n" + text;
                             linesToWrite = text;
                             Console.WriteLine("Text (GetText): \r\n{0}", text);
@@ -77,10 +73,8 @@ namespace YouTubeInsider
                     }
                 }
 
-                textPath = textPath + textFileCount++.ToString() + "." + LanguageService.analyzeType(textWords, videoName);
-
-                System.IO.File.WriteAllText(textPath, linesToWrite);
-                meanConfidence.Text = meanConfidenceValue + " ... Completed";
+                //textPath = textPath + textFileCount++.ToString() + "." + LanguageService.analyzeType(textWords, videoName);
+                //System.IO.File.WriteAllText(textPath, linesToWrite);
             }
             catch (Exception e)
             {
@@ -90,7 +84,7 @@ namespace YouTubeInsider
                 Console.WriteLine(e.ToString());
                 MessageBox.Show(e.ToString());
             }
-            return textPath;
+            return linesToWrite;
         }
     }
 }

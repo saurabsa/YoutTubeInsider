@@ -44,6 +44,7 @@ namespace YouTubeInsider
             this.bHaveMouse = false;
             this.cropBtn.Enabled = false;
             this.decodeBtn.Enabled = false;
+            this.langBox.SelectedIndex = 0;
         }
 
         public async System.Threading.Tasks.Task Run()
@@ -398,8 +399,7 @@ namespace YouTubeInsider
             targetImage.Dispose();
 
             string textPath = Constants.TextImagePath;
-            textPath = TesseractTranslation.translate(screenShotImage, textPath, meanConfidence, videoName);
-            //textPath = await OCRPage.translate(screenShotImage, textPath, meanConfidence, videoName);
+            textPath = await OCRService.translate(screenShotImage, meanConfidence, videoName, langBox);
 
             try
             {

@@ -43,6 +43,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.meanConfidence = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.langBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.YTplayer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.screenShotPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TargetPicBox)).BeginInit();
@@ -166,7 +167,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(833, 416);
+            this.label2.Location = new System.Drawing.Point(830, 436);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(143, 17);
             this.label2.TabIndex = 11;
@@ -175,26 +176,43 @@
             // meanConfidence
             // 
             this.meanConfidence.AutoSize = true;
-            this.meanConfidence.Location = new System.Drawing.Point(982, 416);
+            this.meanConfidence.Location = new System.Drawing.Point(982, 436);
             this.meanConfidence.Name = "meanConfidence";
-            this.meanConfidence.Size = new System.Drawing.Size(0, 17);
+            this.meanConfidence.Size = new System.Drawing.Size(114, 17);
             this.meanConfidence.TabIndex = 12;
+            this.meanConfidence.Text = "meanConfidence";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(549, 314);
+            this.label3.Location = new System.Drawing.Point(830, 394);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(143, 17);
+            this.label3.Size = new System.Drawing.Size(85, 17);
             this.label3.TabIndex = 13;
-            this.label3.Text = "Mean Confidence: ";
+            this.label3.Text = "Language:";
+            // 
+            // langBox
+            // 
+            this.langBox.FormattingEnabled = true;
+            this.langBox.Items.AddRange(new object[] {
+            "AutoDetect",
+            "C#",
+            "Java",
+            "C++",
+            "C",
+            "Python"});
+            this.langBox.Location = new System.Drawing.Point(985, 385);
+            this.langBox.Name = "langBox";
+            this.langBox.Size = new System.Drawing.Size(121, 24);
+            this.langBox.TabIndex = 14;
             // 
             // YouTubeInsiderMediaPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1240, 644);
+            this.Controls.Add(this.langBox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.meanConfidence);
             this.Controls.Add(this.label2);
@@ -237,5 +255,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label meanConfidence;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ComboBox langBox;
     }
 }

@@ -10,10 +10,8 @@ using Microsoft.ProjectOxford.Vision.Contract;
 
 namespace YouTubeInsider
 {
-    class OCRPage
+    class MSOCRPage
     {
-        private static uint textFileCount = 1;
-
         /// <summary>
         /// Uploads the image to Project Oxford and performs OCR
         /// </summary>
@@ -39,12 +37,9 @@ namespace YouTubeInsider
             }
         }
 
-        public static async Task<string> translate(string imagePath, string textPath, Label meanConfidence, string videoName)
+        public static async Task<string> translate(string imagePath, List<string> textWords, string videoName)
         {
             string languageCode = "en";
-            string meanConfidenceValue = "";
-            List<string> textWords = new List<string>();
-
             //
             // Either upload an image, or supply a url
             //
@@ -75,40 +70,10 @@ namespace YouTubeInsider
             }
 
             Console.WriteLine(stringBuilder.ToString());
-            textPath = textPath + textFileCount++.ToString() + "." + LanguageService.analyzeType(textWords, videoName);
+            //textPath = textPath + textFileCount++.ToString() + "." + LanguageService.analyzeType(textWords, videoName);
+            //System.IO.File.WriteAllText(textPath, stringBuilder.ToString());
 
-            System.IO.File.WriteAllText(textPath, stringBuilder.ToString());
-            meanConfidence.Text = meanConfidenceValue + " ... Completed";
-
-            return textPath;
-        }
-
-        protected void LogOcrResults(OcrResults results)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            if (results != null && results.Regions != null)
-            {
-                stringBuilder.Append("Text: ");
-                stringBuilder.AppendLine();
-                foreach (var item in results.Regions)
-                {
-                    foreach (var line in item.Lines)
-                    {
-                        foreach (var word in line.Words)
-                        {
-                            stringBuilder.Append(word.Text);
-                            stringBuilder.Append(" ");
-                        }
-
-                        stringBuilder.AppendLine();
-                    }
-
-                    stringBuilder.AppendLine();
-                }
-            }
-
-            Console.WriteLine(stringBuilder.ToString());
+            return stringBuilder.ToString();
         }
     }
 }
