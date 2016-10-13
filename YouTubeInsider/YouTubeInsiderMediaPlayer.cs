@@ -344,7 +344,7 @@ namespace YouTubeInsider
             xml.LoadXml(YTplayer_CallFlash("getCurrentTime()"));
             XmlNode current = xml.SelectSingleNode(@"/number");
             double result = Convert.ToDouble(current.FirstChild.InnerText) / 100.00;
-            captureTime.Text = result.ToString() + " s";
+            captureTime.Text = result.ToString();
 
             Graphics g = YTplayer.CreateGraphics();
             resetRectangle();
