@@ -101,6 +101,7 @@ namespace YouTubeInsider
             //Run().Wait();
             this.YTplayer.Movie = "https://www.youtube.com/v/" + videoId + "?autoplay=1&enablejsapi=1&fs=1&loop=1&modestbranding=1&rel=0&showinfo=0&autohide=1&color=white&iv_load_policy=3&version=3&playerapiid=ytplayer";
             //?version =3&enablejsapi=1
+            //?autoplay=1&enablejsapi=1&fs=1&loop=1&modestbranding=1&rel=0&showinfo=0&autohide=1&color=white&iv_load_policy=3&version=3&playerapiid=ytplayer
             //http://www.youtube.com/v/BboXNHDjhAM?autoplay=1&enablejsapi=1&fs=1&loop=1&modestbranding=1&rel=0&showinfo=0&autohide=1&color=white&iv_load_policy=3&theme=light&version=3
         }
 
@@ -207,7 +208,7 @@ namespace YouTubeInsider
 
         private void YTStateError(string error)
         {
-
+            Console.Write("YTplayer_error: " + error + "\r\n");
         }
 
         private void YTStateChange(string YTplayState)
@@ -252,7 +253,7 @@ namespace YouTubeInsider
 
         private void YTplayer_FlashCall(object sender, AxShockwaveFlashObjects._IShockwaveFlashEvents_FlashCallEvent e)
         {
-            //Console.Write("YTplayer_FlashCall: raw: "+e.request.ToString()+"\r\n");
+            Console.Write("YTplayer_FlashCall: raw: "+e.request.ToString()+"\r\n");
             // message is in xml format so we need to parse it
             XmlDocument document = new XmlDocument();
             document.LoadXml(e.request);

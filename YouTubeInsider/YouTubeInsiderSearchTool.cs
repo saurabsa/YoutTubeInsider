@@ -207,7 +207,7 @@ namespace YouTubeInsider
                 // Uncomment the following line to demonstrate the progress bar. 
                 // System.Threading.Thread.Sleep(100);
             }
-            catch (Exception e)
+            catch
             {
                 this.ErrorCode = VSConstants.E_FAIL;
             }

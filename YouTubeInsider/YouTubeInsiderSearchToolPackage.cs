@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using System.Threading.Tasks;
 
 namespace YouTubeInsider
 {
@@ -55,18 +56,28 @@ namespace YouTubeInsider
             // initialization is the Initialize method.
         }
 
-        private async void InitializeTesseractData()
+        private System.Threading.Tasks.Task InitializeTesseractData()
         {
-            if (!Directory.Exists(Constants.TessDataFolderPath))
+            var tcs = new TaskCompletionSource<bool>();
+            try
             {
-                WebClient Client = new WebClient();
-                string tempTessDataZipFilePath = Path.Combine(Constants.VisualStudioFolderPath, "tessData.zip");
-                Client.DownloadFile(Constants.TessDataUrl, tempTessDataZipFilePath);
-                ZipFile.ExtractToDirectory(tempTessDataZipFilePath, Constants.VisualStudioFolderPath);
-                File.Delete(tempTessDataZipFilePath);
-                string temp = Path.Combine(Constants.VisualStudioFolderPath, "tessdata-3.04.00");
-                Directory.Move(temp, Constants.TessDataFolderPath);
+                if (!Directory.Exists(Constants.TessDataFolderPath))
+                {
+                    WebClient Client = new WebClient();
+                    string tempTessDataZipFilePath = Path.Combine(Constants.VisualStudioFolderPath, "tessData.zip");
+                    Client.DownloadFile(Constants.TessDataUrl, tempTessDataZipFilePath);
+                    ZipFile.ExtractToDirectory(tempTessDataZipFilePath, Constants.VisualStudioFolderPath);
+                    File.Delete(tempTessDataZipFilePath);
+                    string temp = Path.Combine(Constants.VisualStudioFolderPath, "tessdata-3.04.00");
+                    Directory.Move(temp, Constants.TessDataFolderPath);
+                }
             }
+            catch
+            {
+                tcs.SetResult(false);
+            }
+            tcs.SetResult(true);
+            return tcs.Task;
         }
 
         #region Package Members
@@ -75,10 +86,10 @@ namespace YouTubeInsider
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override void Initialize()
+        protected override async void Initialize()
         {
             YouTubeInsiderSearchToolCommand.Initialize(this);
-            InitializeTesseractData();
+            await InitializeTesseractData();
             base.Initialize();
         }
 
